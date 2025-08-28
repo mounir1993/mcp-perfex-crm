@@ -1,0 +1,59 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Tests
+__tests__/
+*.test.js
+*.test.ts
+jest.config.js
+coverage/
+
+# Development files
+.env*
+!.env.example
+tsconfig.json
+.eslintrc*
+.prettierrc*
+.husky/
+
+# Build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation (development)
+docs/
+testing/
+scripts/
+logs/
+
+# Portuguese documentation files
+GUIA_USUARIO.md
+LICOES_APRENDIDAS_PROJETO_MCP.md
+PLANO-EXPANSAO-ENTERPRISE.md
+PLANO_TESTE_SISTEMATICO_COMPLETO.md
+SISTEMA_100_PORCENTO_FUNCIONAL.md
+VERIFICACAO_FINAL_SISTEMA.md
+
+# Development scripts
+*.sh
+docker-compose.yml
+Dockerfile
+*.sql
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

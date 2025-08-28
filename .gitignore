@@ -1,0 +1,49 @@
+# 🔐 FICHEIROS SENSÍVEIS - NUNCA COMMITAR
+.env
+.env.*
+*.env
+config/secrets.json
+config/credentials.json
+config/private.json
+credentials/
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+token.json
+oauth2-token.json
+client_secret*.json
+service-account.json
+
+# 🗄️ BASES DE DADOS
+*.db
+*.sqlite
+*.sqlite3
+*.sql.dump
+database/dumps/
+backups/
+
+# 📝 LOGS E CACHE
+*.log
+logs/
+.cache/
+.npm/
+.yarn/
+node_modules/
+coverage/
+.nyc_output/
+
+# 🔧 DESENVOLVIMENTO
+dist/
+build/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 🐳 DOCKER
+docker-compose.override.yml
+.docker/

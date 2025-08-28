@@ -1,0 +1,44 @@
+# Development files
+node_modules/
+src/
+test-basic.js
+*.md
+!README.md
+
+# Git files
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.*
+
+# Build files
+tsconfig.json
+*.tsbuildinfo
+
+# Logs (will be mounted as volume)
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation (except README)
+docs/
+*.md
+!README.md
+
+# Scripts (not needed in container)
+setup.sh
+docker-deploy.sh
