@@ -5,9 +5,11 @@ import type { MySQLClient } from '../mysql-client.js';
 // Mock do MySQLClient
 const mockQuery = jest.fn() as jest.MockedFunction<any>;
 const mockQueryOne = jest.fn() as jest.MockedFunction<any>;
+const mockExecuteInsert = jest.fn() as jest.MockedFunction<any>;
 const mockClient = {
   query: mockQuery,
   queryOne: mockQueryOne,
+  executeInsert: mockExecuteInsert,
   testConnection: jest.fn(() => Promise.resolve(true)),
   close: jest.fn(() => Promise.resolve())
 } as unknown as MySQLClient;
@@ -132,12 +134,12 @@ describe('Customers Tools', () => {
         city: 'Test City'
       };
 
-      mockQuery.mockResolvedValueOnce([{ insertId: 123 }]);
+      mockExecuteInsert.mockResolvedValueOnce(123);
       mockQueryOne.mockResolvedValueOnce({ userid: 123, ...newCustomerData });
 
       const result = await createTool!.handler(newCustomerData, mockClient);
 
-      expect(mockQuery).toHaveBeenCalledWith(
+      expect(mockExecuteInsert).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO tblclients'),
         expect.arrayContaining(['New Company', '987654321'])
       );
@@ -221,10 +223,11 @@ describe('Customers Tools', () => {
 
     it('should return customer analytics', async () => {
       const mockAnalytics = {
-        total_invoices: 10,
-        total_revenue: 50000,
-        average_invoice: 5000,
-        payment_ratio: 0.8
+        company: 'New Company',
+        userid: 123,
+        vat: '987654321',
+        phonenumber: '+1234567890',
+        city: 'Test City'
       };
       mockQueryOne.mockResolvedValueOnce(mockAnalytics);
 

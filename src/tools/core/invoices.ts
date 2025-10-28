@@ -458,14 +458,14 @@ const createInvoice: InvoiceTool = {
 
       const total = subtotal - discountAmount + adjustment;
 
-      // Create invoice
+      // Create invoice with explicit Draft status
       const invoiceId = await mysqlClient.executeInsert(
         `
         INSERT INTO tblinvoices (
           clientid, number, date, duedate, currency, subtotal, total,
           discount_percent, discount_total, discount_type, adjustment,
-          terms, clientnote, adminnote, datecreated, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 5)
+          terms, clientnote, adminnote, datecreated, status, sent
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 5, 0)
       `,
         [
           client_id,
@@ -519,7 +519,10 @@ const createInvoice: InvoiceTool = {
               `💰 Total: ${total} ${currency}\n` +
               `📅 Date: ${date}\n` +
               `📋 Items: ${items.length}\n` +
-              `📊 Status: Draft`
+              `📊 Status: Draft\n\n` +
+              `ℹ️ Next steps:\n` +
+              `1. Use 'send_invoice' to mark as sent\n` +
+              `2. Record payments when received using 'add_invoice_payment'`
           }
         ]
       };
@@ -529,7 +532,7 @@ const createInvoice: InvoiceTool = {
         content: [
           {
             type: 'text',
-            text: `Error creating invoice: ${error instanceof Error ? error.message : String(error)}`
+            text: `❌ Error creating invoice: ${error instanceof Error ? error.message : String(error)}\n\nPlease check the input parameters and try again.`
           }
         ]
       };
@@ -701,17 +704,84 @@ const addInvoicePayment: InvoiceTool = {
         };
       }
 
+      // CRITICAL VALIDATION: Prevent payment on draft invoices
+      if (invoice.status === 5) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `⚠️ Cannot add payment to draft invoice #${invoice.number}.\n\nPlease use 'send_invoice' first to mark it as sent, then add payments.`
+            }
+          ]
+        };
+      }
+
+      // VALIDATION: Prevent payment on cancelled invoices
+      if (invoice.status === 6) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Cannot add payment to cancelled invoice #${invoice.number}.`
+            }
+          ]
+        };
+      }
+
+      // VALIDATION: Check if already fully paid
+      if (invoice.status === 2 && (invoice.amount_paid || 0) >= invoice.total) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `⚠️ Invoice #${invoice.number} is already fully paid (${invoice.amount_paid}/${invoice.total}).`
+            }
+          ]
+        };
+      }
+
       // Validate payment amount
       const remainingBalance = invoice.total - (invoice.amount_paid || 0);
+      if (amount <= 0) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Payment amount must be greater than 0`
+            }
+          ]
+        };
+      }
+
       if (amount > remainingBalance) {
         return {
           content: [
             {
               type: 'text',
-              text: `Payment amount (${amount}) exceeds remaining balance (${remainingBalance})`
+              text: `❌ Payment amount (${amount}) exceeds remaining balance (${remainingBalance})`
             }
           ]
         };
+      }
+
+      // VALIDATION: Check for duplicate payments (same amount, date, and transaction ID)
+      if (transactionid) {
+        const duplicatePayment = await mysqlClient.queryOne<DatabaseRow>(
+          `SELECT id FROM tblinvoicepaymentrecords 
+           WHERE invoiceid = ? AND amount = ? AND paymentdate = ? AND transactionid = ?`,
+          [invoice_id, amount, paymentdate, transactionid]
+        );
+
+        if (duplicatePayment) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `⚠️ Duplicate payment detected! A payment with the same amount (${amount}), date (${paymentdate}), and transaction ID (${transactionid}) already exists.`
+              }
+            ]
+          };
+        }
       }
 
       // Record payment
@@ -724,20 +794,29 @@ const addInvoicePayment: InvoiceTool = {
         [invoice_id, amount, paymentdate, paymentmode, transactionid, note]
       );
 
-      // Calculate new total paid and update invoice status
+      // Calculate new total paid and update invoice status SAFELY
       const newTotalPaid = (invoice.amount_paid || 0) + amount;
       let newStatus = invoice.status;
-
-      if (newTotalPaid >= invoice.total) {
-        newStatus = 2; // Paid
-      } else if (newTotalPaid > 0) {
-        newStatus = 3; // Partially Paid
+      
+      // Only update status if currently Unpaid (1) or Partially Paid (3)
+      if (invoice.status === 1 || invoice.status === 3) {
+        if (newTotalPaid >= invoice.total) {
+          newStatus = 2; // Paid
+        } else if (newTotalPaid > 0) {
+          newStatus = 3; // Partially Paid
+        } else {
+          newStatus = 1; // Unpaid
+        }
       }
+      // If invoice is in other status (2=Paid, 4=Overdue, 5=Draft, 6=Cancelled), don't auto-change
 
-      await mysqlClient.query('UPDATE tblinvoices SET status = ? WHERE id = ?', [
-        newStatus,
-        invoice_id
-      ]);
+      // Update status only if it has changed
+      if (newStatus !== invoice.status) {
+        await mysqlClient.query('UPDATE tblinvoices SET status = ? WHERE id = ?', [
+          newStatus,
+          invoice_id
+        ]);
+      }
 
       const statusNames = {
         1: 'Unpaid',

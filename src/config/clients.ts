@@ -4,7 +4,7 @@ export const CLIENT_CONFIGS: Record<string, ClientConfig> = {
   default: {
     id: 'default',
     name: 'Default Client',
-    database: 'perfex_crm',
+    database: 'u512946718_intendb',
     features: ['all']
   },
   demo: {
