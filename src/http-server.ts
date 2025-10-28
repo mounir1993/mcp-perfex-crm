@@ -94,7 +94,8 @@ async function initializeDatabase() {
     logger.info('Database connected successfully');
   } catch (error) {
     logger.error('Failed to connect to database:', error);
-    throw error;
+    logger.warn('Server will start without database connection - some features may not work');
+    mysqlClient = null;
   }
 }
 
@@ -201,9 +202,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Start server
 async function startServer() {
   try {
-    // Initialize database connection
-    await initializeDatabase();
-    
+    // Start the HTTP server immediately without database connection
     app.listen(PORT, () => {
       logger.info(`🚀 MCP Perfex CRM HTTP Server running on port ${PORT}`);
       logger.info(`📚 API Documentation:`);
@@ -213,6 +212,13 @@ async function startServer() {
       logger.info(`   POST /api/tools/:toolName - Execute a tool (requires auth)`);
       logger.info(`🔐 Authentication: Bearer token required for /api/tools/*`);
       logger.info(`🛡️  Security: CORS enabled, rate limiting active, IP protection enabled`);
+      
+      // Try to initialize database connection in the background
+      setTimeout(() => {
+        initializeDatabase().catch(error => {
+          logger.warn('Database initialization failed, continuing without database:', error.message);
+        });
+      }, 1000);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
