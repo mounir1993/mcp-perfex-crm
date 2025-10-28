@@ -45,8 +45,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize Security Manager
-const securityManager = new SecurityManager();
-securityManager.initialize();
+SecurityManager.initialize();
 
 // Global security middleware
 app.use(express.json({ limit: '10mb' }));
@@ -79,8 +78,19 @@ let mysqlClient: MySQLClient | null = null;
 async function initializeDatabase() {
   try {
     const clientConfig = getClientConfig(process.env.CLIENT_ID || 'default');
-    mysqlClient = new MySQLClient(clientConfig.mysql);
-    await mysqlClient.connect();
+    
+    // Create MySQL config from environment and client config
+    const mysqlConfig = {
+      host: process.env.DB_HOST || '193.203.168.172',
+      port: parseInt(process.env.DB_PORT || '3306'),
+      user: process.env.DB_USER || 'u512946718_intencrm',
+      password: process.env.DB_PASSWORD || 'Mounir@0903',
+      database: clientConfig.database
+    };
+    
+    mysqlClient = new MySQLClient(mysqlConfig, clientConfig.id);
+    // Test the connection
+    await mysqlClient.testConnection();
     logger.info('Database connected successfully');
   } catch (error) {
     logger.error('Failed to connect to database:', error);
@@ -122,7 +132,7 @@ app.get('/health', (req, res) => {
 
 app.get('/api/generate-token', (req, res) => {
   try {
-    const token = securityManager.generateAPIToken();
+    const token = SecurityManager.generateAPIToken();
     logger.info('API token generated', { ip: req.ip });
     res.json({ 
       token,
@@ -169,7 +179,7 @@ app.post('/api/tools/:toolName', async (req, res) => {
     }
 
     // Execute the tool
-    const result = await tool.handler(toolArgs, { mysqlClient });
+    const result = await tool.handler(toolArgs, mysqlClient!);
     
     logger.info('Tool executed successfully', { tool: toolName, ip: req.ip });
     res.json(result);
@@ -214,7 +224,7 @@ async function startServer() {
 process.on('SIGINT', async () => {
   logger.info('Shutting down server...');
   if (mysqlClient) {
-    await mysqlClient.disconnect();
+    await mysqlClient.close();
   }
   process.exit(0);
 });
@@ -222,7 +232,7 @@ process.on('SIGINT', async () => {
 process.on('SIGTERM', async () => {
   logger.info('Shutting down server...');
   if (mysqlClient) {
-    await mysqlClient.disconnect();
+    await mysqlClient.close();
   }
   process.exit(0);
 });
