@@ -1,0 +1,31 @@
+# Ensure consistent line endings across platforms
+* text=auto eol=lf
+
+# TypeScript and JavaScript files use LF
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+
+# Configuration files use LF
+*.yml text eol=lf
+*.yaml text eol=lf
+tsconfig.json text eol=lf
+.gitignore text eol=lf
+.dockerignore text eol=lf
+
+# Dockerfile uses LF
+Dockerfile text eol=lf
+
+# Markdown files use LF
+*.md text eol=lf
+
+# Shell scripts use LF
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

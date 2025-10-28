@@ -19,8 +19,13 @@ RUN npm list --depth=0
 # Copy TypeScript configuration
 COPY tsconfig.json ./
 
-# Copy source code
+# Copy source code and normalize line endings for Linux
 COPY src/ ./src/
+
+# Install dos2unix for line ending conversion and normalize line endings
+RUN apk add --no-cache dos2unix && \
+    find ./src -type f -name "*.ts" -exec dos2unix {} \; && \
+    dos2unix tsconfig.json
 
 # Build the application - verify tsc is available first
 RUN npx tsc --version
