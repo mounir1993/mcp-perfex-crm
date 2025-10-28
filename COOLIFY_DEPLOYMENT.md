@@ -100,7 +100,35 @@ LOG_LEVEL=info
 
 ### **Common Issues & Solutions**
 
+#### **Node.js Version Compatibility Issues**
+Many modern npm packages require specific Node.js versions. Always check:
+- Package `engines` requirements in node_modules
+- Use LTS versions of Node.js (18, 20, 22)
+- Match Docker base image with local development environment
+
+#### **Similar Issues That Could Occur:**
+1. **Python/Other Language Version Mismatches**
+2. **npm/yarn Version Incompatibility** 
+3. **Alpine vs Ubuntu Base Image Issues**
+4. **Architecture Mismatches (x64 vs arm64)**
+
 #### **Docker Build Failures**
+
+**Issue: `tsc: not found`**
+```bash
+# Error: sh: tsc: not found during npm run build
+# Solution: Fixed in commit 0177ffe
+# - Upgraded to Node.js 20 to resolve engine compatibility
+# - Use npx tsc instead of npm run build for reliable TypeScript access
+# - Added TypeScript verification step
+```
+
+**Issue: `EBADENGINE Unsupported engine` warnings**
+```bash
+# Error: Multiple packages require Node.js >=20 but using Node.js 18
+# Solution: Upgraded Docker base image from node:18-alpine to node:20-alpine
+# Affected packages: cross-env, commander, rimraf, glob, etc.
+```
 
 **Issue: `tsconfig.json not found`**
 ```bash
@@ -114,12 +142,6 @@ LOG_LEVEL=info
 # Error: Build tools not available during npm ci --only=production
 # Solution: Fixed with multi-stage Docker build
 # Builder stage installs all deps, production stage only runtime deps
-```
-
-**Issue: Missing TypeScript compiler**
-```bash
-# Error: npm run build fails - TypeScript not found
-# Solution: Multi-stage build ensures tsc is available during build
 ```
 
 #### **Build Failures**
