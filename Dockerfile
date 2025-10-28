@@ -49,6 +49,9 @@ RUN addgroup -g 1001 -S nodejs && \
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
+# Set default server mode to HTTP for web integrations
+ENV SERVER_MODE=http
+
 # Expose port
 EXPOSE 3000
 
