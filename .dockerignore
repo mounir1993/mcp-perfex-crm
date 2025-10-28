@@ -13,8 +13,8 @@ test-basic.js
 .env.*
 
 # Build files
-tsconfig.json
 *.tsbuildinfo
+dist/
 
 # Logs (will be mounted as volume)
 logs/
