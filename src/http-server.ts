@@ -102,9 +102,23 @@ class MCPHttpServer {
 
   private async initializeDatabase() {
     try {
-      const config = getClientConfig();
-      this.mysqlClient = new MySQLClient(config);
-      await this.mysqlClient.connect();
+      const clientConfig = getClientConfig();
+      const mysqlConfig = {
+        host: process.env.MYSQL_HOST || 'localhost',
+        port: parseInt(process.env.MYSQL_PORT || '3306'),
+        user: process.env.MYSQL_USER || 'root',
+        password: process.env.MYSQL_PASSWORD || '',
+        database: clientConfig.database
+      };
+      
+      this.mysqlClient = new MySQLClient(mysqlConfig);
+      
+      // Test the connection
+      const isConnected = await this.mysqlClient.testConnection();
+      if (!isConnected) {
+        throw new Error('Failed to connect to MySQL database');
+      }
+      
       logger.info('✅ Database connected successfully');
     } catch (error) {
       logger.error('❌ Database connection failed:', error);
@@ -155,7 +169,7 @@ class MCPHttpServer {
 
         logger.info(`🔧 Executing tool: ${toolName}`, { args });
 
-        const result = await tool.handler(this.mysqlClient, args || {});
+        const result = await tool.handler(args || {}, this.mysqlClient);
 
         res.json({
           success: true,
@@ -273,7 +287,7 @@ class MCPHttpServer {
         });
       }
 
-      const result = await tool.handler(this.mysqlClient, args);
+      const result = await tool.handler(args, this.mysqlClient);
       
       res.json({
         success: true,
