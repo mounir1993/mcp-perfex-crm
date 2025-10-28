@@ -100,6 +100,28 @@ LOG_LEVEL=info
 
 ### **Common Issues & Solutions**
 
+#### **Docker Build Failures**
+
+**Issue: `tsconfig.json not found`**
+```bash
+# Error: failed to calculate checksum: "/tsconfig.json": not found
+# Solution: This was fixed in commit 2962f1b
+# The issue was tsconfig.json being excluded in .dockerignore
+```
+
+**Issue: `NODE_ENV=production skips devDependencies`**
+```bash
+# Error: Build tools not available during npm ci --only=production
+# Solution: Fixed with multi-stage Docker build
+# Builder stage installs all deps, production stage only runtime deps
+```
+
+**Issue: Missing TypeScript compiler**
+```bash
+# Error: npm run build fails - TypeScript not found
+# Solution: Multi-stage build ensures tsc is available during build
+```
+
 #### **Build Failures**
 ```bash
 # Check package.json syntax
