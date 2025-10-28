@@ -57,4 +57,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "console.log('Health check')" || exit 1
 
 # Start the application
-CMD ["node", "dist/index.js"]
+# Use environment variable to choose between MCP or HTTP mode
+CMD ["sh", "-c", "if [ \"$SERVER_MODE\" = \"http\" ]; then node dist/http-server.js; else node dist/index.js; fi"]
