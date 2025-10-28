@@ -36,7 +36,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
+# Use npm install instead of npm ci for better error handling
+RUN npm cache clean --force && \
+    npm install --omit=dev --verbose && \
+    npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
