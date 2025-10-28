@@ -1,6 +1,6 @@
 # Multi-stage build for optimal production image
 # Stage 1: Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -11,17 +11,20 @@ COPY package*.json ./
 # Install ALL dependencies (including devDependencies for building)
 RUN npm ci
 
+# Verify TypeScript installation
+RUN npm list typescript && which npx && npx tsc --version
+
 # Copy TypeScript configuration
 COPY tsconfig.json ./
 
 # Copy source code
 COPY src/ ./src/
 
-# Build the application
-RUN npm run build
+# Build the application - use npx to ensure tsc is found
+RUN npx tsc
 
 # Stage 2: Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Set working directory
 WORKDIR /app
@@ -30,7 +33,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
