@@ -1,6 +1,5 @@
 # Development files
 node_modules/
-src/
 test-basic.js
 *.md
 !README.md

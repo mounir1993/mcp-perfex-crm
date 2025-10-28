@@ -9,11 +9,11 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_USERNAME/mcp-perfex-crm.git"
+    "url": "git+https://github.com/mounir1993/mcp-perfex-crm.git"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/mcp-perfex-crm#readme",
+  "homepage": "https://github.com/mounir1993/mcp-perfex-crm#readme",
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/mcp-perfex-crm/issues"
+    "url": "https://github.com/mounir1993/mcp-perfex-crm/issues"
   },
   "files": [
     "dist/**/*",
@@ -36,7 +36,12 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rimraf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run lint && npm run test",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "docker:build": "docker build -t mcp-perfex-crm .",
+    "docker:run": "docker run -d --name mcp-perfex-crm -p 3000:3000 --env-file .env mcp-perfex-crm",
+    "docker:stop": "docker stop mcp-perfex-crm && docker rm mcp-perfex-crm",
+    "docker:compose": "docker-compose up -d",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
