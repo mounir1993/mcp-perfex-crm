@@ -104,7 +104,15 @@ LOG_LEVEL=info
 Many modern npm packages require specific Node.js versions. Always check:
 - Package `engines` requirements in node_modules
 - Use LTS versions of Node.js (18, 20, 22)
-- Match Docker base image with local development environment
+- **Match Docker base image with local development environment**
+- Regenerate package-lock.json when changing Node.js versions
+
+#### **npm Installation Best Practices:**
+1. **Version Alignment**: Ensure Docker Node.js version matches development
+2. **Clean Installs**: Use `npm cache clean --force` before installation
+3. **Explicit Dependencies**: Use `--include=dev` for build stages
+4. **Verification Steps**: Add package verification in Dockerfile
+5. **Lock File Management**: Regenerate package-lock.json when upgrading Node.js
 
 #### **Similar Issues That Could Occur:**
 1. **Python/Other Language Version Mismatches**
@@ -113,6 +121,23 @@ Many modern npm packages require specific Node.js versions. Always check:
 4. **Architecture Mismatches (x64 vs arm64)**
 
 #### **Docker Build Failures**
+
+**Issue: `npm list shows (empty)` - No packages installed**
+```bash
+# Error: npm ci runs but installs no packages, shows `-- (empty)`
+# Solution: Fixed in commit ac21d8d
+# - Regenerated package-lock.json with correct Node.js version
+# - Aligned Docker Node.js version with development environment
+# - Use npm install --include=dev instead of npm ci for reliability
+```
+
+**Issue: Node.js version mismatch between dev and Docker**
+```bash
+# Error: package-lock.json created with different Node.js version
+# Solution: Upgrade Docker to Node.js 22 to match local development
+# - Local: Node.js 22.17.1, Docker was: Node.js 20, now: Node.js 22
+# - Regenerate package-lock.json when changing Node.js versions
+```
 
 **Issue: `tsc: not found`**
 ```bash
